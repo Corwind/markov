@@ -6,18 +6,27 @@ model.py
 A simple markov chains model generator.
 
 Usage:
-    model.py -f <file> [(--save|-s)]
-    
+    model.py (--file|-f) <file> [(--save|-s) <save>]
+
+Options:
+    --help -h   Print this message.
+    --file -f   Text file to use as input.
+    --save -s   Binary file to store the pickle dump into.
 """
 
-from pprint import pprint as print
 import sys
+import pickle
+from pprint import pprint as print
+from docopt import docopt
+
+punc = ['.', '!', '?']
 
 class Markov:
 
     def __init__(self, f = None):
         self.tab = []
         self.chain = {}
+        self.majs = []
         if f:
             self.read_file(f)
 
@@ -40,6 +49,9 @@ class Markov:
             self.shift(l[i])
             pref = self.prefix()
             nxt = l[i+1]
+            if pref[-1] in punc:
+                self.majs.append(nxt)
+                self.tab = []
             if not pref in self.chain.keys():
                 self.chain[pref] = [nxt]
             else:
@@ -47,6 +59,10 @@ class Markov:
 
 
 if __name__ == "__main__":
-    s, f = sys.argv
+    arguments = docopt(__doc__, version='0.1')
+    f = arguments['<file>']
+    s = arguments['<save>']
     m = Markov(f)
-    print(m.chain)
+    if s:
+        with open(s, 'wb') as p:
+            pickle.dump(pickle.dumps(m), p)
